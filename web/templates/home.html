@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                <strong>PlayPort</strong>
+            </a>
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" href="/">Home</a>
+                <a class="navbar-item" href="/providers">Providers</a>
+                <a class="navbar-item" href="/transfer">Transfer</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero is-info is-medium">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <h1 class="title is-1">
+                    Welcome to PlayPort
+                </h1>
+                <h2 class="subtitle is-3">
+                    Transfer your playlists between music platforms with ease
+                </h2>
+                <div class="buttons is-centered mt-5">
+                    <a href="/transfer" class="button is-primary is-large">
+                        Start Transfer
+                    </a>
+                    <a href="/providers" class="button is-light is-large">
+                        View Providers
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column">
+                    <div class="box">
+                        <h3 class="title is-4">🎵 Easy Transfer</h3>
+                        <p>Transfer your playlists from one music platform to another in just a few clicks.</p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="box">
+                        <h3 class="title is-4">🔒 Secure</h3>
+                        <p>Your data is safe. We never store your playlists or music credentials.</p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="box">
+                        <h3 class="title is-4">⚡ Fast</h3>
+                        <p>Transfer hundreds of tracks in seconds with our optimized transfer engine.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <strong>PlayPort</strong> - Transfer your playlists between music platforms
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

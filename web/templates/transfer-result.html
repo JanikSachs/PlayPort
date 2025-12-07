@@ -1,0 +1,28 @@
+<div class="box">
+    <article class="message {{if eq .Progress.Status "completed"}}is-success{{else if eq .Progress.Status "failed"}}is-danger{{else}}is-info{{end}}">
+        <div class="message-header">
+            <p>Transfer Status: {{.Progress.Status}}</p>
+        </div>
+        <div class="message-body">
+            <p><strong>{{.Progress.Message}}</strong></p>
+            <p class="mt-3">
+                Source: <span class="tag is-info">{{.Progress.SourceProvider}}</span><br>
+                Target: <span class="tag is-success">{{.Progress.TargetProvider}}</span>
+            </p>
+            
+            {{if eq .Progress.Status "completed"}}
+            <div class="notification is-success is-light mt-4">
+                <strong>✓ Transfer Complete!</strong><br>
+                Your playlist has been successfully transferred.
+            </div>
+            {{else if eq .Progress.Status "in_progress"}}
+            <progress class="progress is-primary mt-4" value="{{.Progress.Progress}}" max="100">{{.Progress.Progress}}%</progress>
+            {{else if eq .Progress.Status "failed"}}
+            <div class="notification is-danger is-light mt-4">
+                <strong>✗ Transfer Failed</strong><br>
+                {{.Progress.Message}}
+            </div>
+            {{end}}
+        </div>
+    </article>
+</div>

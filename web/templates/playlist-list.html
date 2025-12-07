@@ -1,0 +1,55 @@
+<div class="box">
+    <h3 class="title is-4">Playlists from {{.Provider}}</h3>
+    
+    {{if .Playlists}}
+    <div class="field">
+        <label class="label">Step 2: Choose a Playlist</label>
+        <div class="control">
+            {{range .Playlists}}
+            <div class="card mb-3">
+                <div class="card-content">
+                    <div class="media">
+                        <div class="media-content">
+                            <p class="title is-5">{{.Name}}</p>
+                            <p class="subtitle is-6">{{.TrackCount}} tracks</p>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <p>{{.Description}}</p>
+                        <div class="field has-addons mt-4">
+                            <div class="control is-expanded">
+                                <div class="select is-fullwidth">
+                                    <select id="target-provider-{{.ID}}" name="target_provider">
+                                        <option value="">Choose target provider...</option>
+                                        <option value="Mock Music">Mock Music</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <form hx-post="/api/transfer/start" 
+                                      hx-target="#transfer-result" 
+                                      hx-swap="innerHTML">
+                                    <input type="hidden" name="source_provider" value="{{.Provider}}">
+                                    <input type="hidden" name="playlist_id" value="{{.ID}}">
+                                    <input type="hidden" id="target-input-{{.ID}}" name="target_provider" value="">
+                                    <button 
+                                        type="submit" 
+                                        class="button is-success"
+                                        onclick="document.getElementById('target-input-{{.ID}}').value = document.getElementById('target-provider-{{.ID}}').value; return document.getElementById('target-provider-{{.ID}}').value !== '';">
+                                        Transfer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{else}}
+    <div class="notification is-warning">
+        No playlists found for this provider.
+    </div>
+    {{end}}
+</div>

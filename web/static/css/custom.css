@@ -1,0 +1,71 @@
+/* Custom CSS for PlayPort */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.section {
+    flex: 1;
+}
+
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand strong {
+    font-size: 1.5rem;
+}
+
+.footer {
+    margin-top: auto;
+    padding: 3rem 1.5rem;
+}
+
+/* HTMX loading indicators */
+.htmx-request .htmx-indicator {
+    display: inline;
+}
+
+.htmx-indicator {
+    display: none;
+}
+
+/* Progress bar styling */
+.progress::-webkit-progress-value {
+    transition: width 0.5s ease;
+}
+
+.progress::-moz-progress-bar {
+    transition: width 0.5s ease;
+}
+
+/* Animation for transfer result */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#transfer-result > * {
+    animation: fadeIn 0.5s ease-out;
+}
+
+#playlist-container > * {
+    animation: fadeIn 0.3s ease-out;
+}
