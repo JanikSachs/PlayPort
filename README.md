@@ -208,12 +208,73 @@ PlayPort is designed to be easily extended:
 - Validate and sanitize all user inputs
 - Use HTTPS in production
 
+## 🎵 Spotify Setup
+
+PlayPort now supports Spotify integration! To enable Spotify, you need to configure the following environment variables:
+
+### Required Environment Variables
+
+1. **SPOTIFY_CLIENT_ID**: Your Spotify application client ID
+2. **SPOTIFY_CLIENT_SECRET**: Your Spotify application client secret
+3. **SPOTIFY_REDIRECT_URL**: The OAuth callback URL (e.g., `http://localhost:8080/auth/spotify/callback`)
+
+### Getting Spotify Credentials
+
+1. Go to [Spotify for Developers Dashboard](https://developer.spotify.com/dashboard)
+2. Log in with your Spotify account
+3. Click "Create an App"
+4. Fill in the app name and description
+5. Once created, you'll see your **Client ID** and **Client Secret**
+6. Click "Edit Settings" and add the redirect URI:
+   - For local development: `http://localhost:8080/auth/spotify/callback`
+   - For production: `https://yourdomain.com/auth/spotify/callback`
+
+### Running with Spotify Enabled
+
+```bash
+# Set environment variables
+export SPOTIFY_CLIENT_ID="your-client-id-here"
+export SPOTIFY_CLIENT_SECRET="your-client-secret-here"
+export SPOTIFY_REDIRECT_URL="http://localhost:8080/auth/spotify/callback"
+
+# Run the application
+./playport
+```
+
+Or use a `.env` file (make sure to add it to `.gitignore`):
+
+```bash
+# .env file
+SPOTIFY_CLIENT_ID=your-client-id-here
+SPOTIFY_CLIENT_SECRET=your-client-secret-here
+SPOTIFY_REDIRECT_URL=http://localhost:8080/auth/spotify/callback
+```
+
+Then load it before running:
+```bash
+export $(cat .env | xargs) && ./playport
+```
+
+### Using Spotify Features
+
+1. Navigate to the **Providers** page
+2. Click **Connect Spotify**
+3. Authorize the application in the Spotify OAuth flow
+4. Once connected, you can:
+   - View your Spotify playlists
+   - Export playlists (coming soon: import to other providers)
+
+**Note**: If you don't configure Spotify credentials, the application will run normally with only the mock provider available.
+
 ## 📝 Future Enhancements
 
 Potential features for future development:
 
-- Real provider integrations (Spotify, Apple Music, YouTube Music, etc.)
+- ✅ Spotify integration (read playlists, OAuth) - **COMPLETED**
+- Apple Music integration
+- YouTube Music integration
 - User authentication and session management
+- Playlist import to Spotify
 - Playlist transfer history
 - Batch transfers
 - Track matching algorithms (for cross-platform track resolution)
