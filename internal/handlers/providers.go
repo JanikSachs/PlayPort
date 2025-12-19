@@ -38,10 +38,10 @@ func (h *ProviderHandlers) HandleSpotifyPlaylists(w http.ResponseWriter, r *http
 	if err := h.spotifyProvider.Authenticate(); err != nil {
 		log.Printf("Spotify not authenticated: %v", err)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`<div class="notification is-warning">
-			<p>Please connect your Spotify account first.</p>
-			<a href="/auth/spotify/start" class="button is-primary mt-2">Connect Spotify</a>
-		</div>`))
+		if err := h.templates.ExecuteTemplate(w, "spotify-not-connected.html", nil); err != nil {
+			log.Printf("Error rendering template: %v", err)
+			http.Error(w, "Please connect your Spotify account first", http.StatusUnauthorized)
+		}
 		return
 	}
 

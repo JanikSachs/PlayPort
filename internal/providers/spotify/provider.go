@@ -126,17 +126,19 @@ func (p *SpotifyProvider) GetPlaylists() ([]models.Playlist, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch playlists: %w", err)
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
 			return nil, fmt.Errorf("spotify API error: %s - %s", resp.Status, string(body))
 		}
 
 		var result PlaylistsResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			resp.Body.Close()
 			return nil, fmt.Errorf("failed to decode response: %w", err)
 		}
+		resp.Body.Close()
 
 		for _, item := range result.Items {
 			playlist := models.Playlist{
@@ -215,17 +217,19 @@ func (p *SpotifyProvider) ExportPlaylist(id string) (models.Playlist, error) {
 		if err != nil {
 			return models.Playlist{}, fmt.Errorf("failed to fetch tracks: %w", err)
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
 			return models.Playlist{}, fmt.Errorf("spotify API error: %s - %s", resp.Status, string(body))
 		}
 
 		var tracksResponse TracksResponse
 		if err := json.NewDecoder(resp.Body).Decode(&tracksResponse); err != nil {
+			resp.Body.Close()
 			return models.Playlist{}, fmt.Errorf("failed to decode tracks: %w", err)
 		}
+		resp.Body.Close()
 
 		for _, item := range tracksResponse.Items {
 			if item.Track.ID == "" {
@@ -245,7 +249,7 @@ func (p *SpotifyProvider) ExportPlaylist(id string) (models.Playlist, error) {
 			}
 
 			// Get ISRC if available
-			if len(item.Track.ExternalIDs.ISRC) > 0 {
+			if item.Track.ExternalIDs.ISRC != "" {
 				track.ISRC = item.Track.ExternalIDs.ISRC
 			}
 

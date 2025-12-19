@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"sync"
 	"time"
@@ -59,7 +61,12 @@ func (s *InMemoryConnectionStore) Save(conn *models.Connection) error {
 	// Set timestamps
 	now := time.Now()
 	if conn.ID == "" {
-		conn.ID = fmt.Sprintf("%s-%d", key, now.Unix())
+		// Generate a unique ID using crypto/rand
+		randBytes := make([]byte, 16)
+		if _, err := rand.Read(randBytes); err != nil {
+			return fmt.Errorf("failed to generate connection ID: %w", err)
+		}
+		conn.ID = fmt.Sprintf("%s-%s", key, hex.EncodeToString(randBytes))
 		conn.CreatedAt = now
 	}
 	conn.UpdatedAt = now
