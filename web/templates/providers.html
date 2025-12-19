@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                <strong>PlayPort</strong>
+            </a>
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" href="/">Home</a>
+                <a class="navbar-item" href="/providers">Providers</a>
+                <a class="navbar-item" href="/transfer">Transfer</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Available Music Providers</h1>
+            <p class="subtitle">Connect your music platforms to start transferring playlists</p>
+
+            <div class="columns is-multiline mt-5">
+                {{range .Providers}}
+                <div class="column is-one-third">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="media">
+                                <div class="media-content">
+                                    <p class="title is-4">{{.}}</p>
+                                </div>
+                            </div>
+                            <div class="content">
+                                <p>Click below to view playlists from this provider.</p>
+                                <button 
+                                    class="button is-primary is-fullwidth"
+                                    hx-get="/api/playlists?provider={{.}}"
+                                    hx-target="#playlist-container"
+                                    hx-swap="innerHTML">
+                                    View Playlists
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+
+            <div id="playlist-container" class="mt-6">
+                <!-- Playlists will be loaded here via HTMX -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <strong>PlayPort</strong> - Transfer your playlists between music platforms
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

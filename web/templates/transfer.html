@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                <strong>PlayPort</strong>
+            </a>
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" href="/">Home</a>
+                <a class="navbar-item" href="/providers">Providers</a>
+                <a class="navbar-item" href="/transfer">Transfer</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Transfer Playlists</h1>
+            <p class="subtitle">Move your favorite playlists between music platforms</p>
+
+            <div class="columns mt-5">
+                <div class="column">
+                    <div class="box">
+                        <h2 class="title is-4">Step 1: Select Source Provider</h2>
+                        <div class="field">
+                            <label class="label">From:</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select id="source-provider" name="source_provider">
+                                        <option value="">Choose a provider...</option>
+                                        {{range .Providers}}
+                                        <option value="{{.}}">{{.}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button 
+                            class="button is-primary is-fullwidth"
+                            hx-get="/api/playlists"
+                            hx-include="#source-provider"
+                            hx-target="#playlist-selection"
+                            hx-swap="innerHTML"
+                            onclick="this.setAttribute('hx-get', '/api/playlists?provider=' + document.getElementById('source-provider').value)">
+                            Load Playlists
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist-selection" class="mt-5">
+                <!-- Playlists will be loaded here -->
+            </div>
+
+            <div id="transfer-result" class="mt-5">
+                <!-- Transfer result will be shown here -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <strong>PlayPort</strong> - Transfer your playlists between music platforms
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
