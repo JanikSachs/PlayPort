@@ -10,6 +10,7 @@ import (
 
 	"github.com/JanikSachs/PlayPort/internal/providers"
 	"github.com/JanikSachs/PlayPort/internal/services"
+	"github.com/JanikSachs/PlayPort/internal/storage"
 )
 
 func setupTestHandlers(t *testing.T) *Handlers {
@@ -18,13 +19,16 @@ func setupTestHandlers(t *testing.T) *Handlers {
 	mockProvider := providers.NewMockProvider()
 	transferService.RegisterProvider(mockProvider)
 	
+	// Create connection store
+	connectionStore := storage.NewInMemoryConnectionStore()
+	
 	// Parse templates
 	templates, err := template.ParseGlob("../../web/templates/*.html")
 	if err != nil {
 		t.Fatalf("Failed to parse templates: %v", err)
 	}
 	
-	return NewHandlers(transferService, templates)
+	return NewHandlers(transferService, templates, connectionStore, false)
 }
 
 func TestHandleHome(t *testing.T) {

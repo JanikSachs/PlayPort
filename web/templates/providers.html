@@ -29,8 +29,34 @@
             <h1 class="title">Available Music Providers</h1>
             <p class="subtitle">Connect your music platforms to start transferring playlists</p>
 
+            {{if .SpotifyEnabled}}
+            <div class="box mt-5">
+                <h2 class="title is-5">Spotify</h2>
+                {{if .SpotifyConnected}}
+                <div class="notification is-success is-light">
+                    <p><strong>Connected as:</strong> {{.SpotifyUserName}}</p>
+                </div>
+                <button 
+                    class="button is-primary is-fullwidth"
+                    hx-get="/providers/spotify/playlists"
+                    hx-target="#playlist-container"
+                    hx-swap="innerHTML">
+                    Load Playlists
+                </button>
+                {{else}}
+                <div class="notification is-info is-light">
+                    <p>Connect your Spotify account to view and transfer your playlists.</p>
+                </div>
+                <a href="/auth/spotify/start" class="button is-primary is-fullwidth">
+                    Connect Spotify
+                </a>
+                {{end}}
+            </div>
+            {{end}}
+
             <div class="columns is-multiline mt-5">
                 {{range .Providers}}
+                {{if ne . "Spotify"}}
                 <div class="column is-one-third">
                     <div class="card">
                         <div class="card-content">
@@ -52,6 +78,7 @@
                         </div>
                     </div>
                 </div>
+                {{end}}
                 {{end}}
             </div>
 
