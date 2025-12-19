@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -23,7 +24,7 @@ const (
 type SpotifyProvider struct {
 	config          *oauth2.Config
 	connectionStore storage.ConnectionStore
-	userID          string // Current user ID
+	userID          string // Current user ID - TODO: Replace with session-based user identification
 	httpClient      *http.Client
 }
 
@@ -45,7 +46,7 @@ func NewSpotifyProvider(clientID, clientSecret, redirectURL string, connectionSt
 	return &SpotifyProvider{
 		config:          config,
 		connectionStore: connectionStore,
-		userID:          "default", // In a real app, this would come from session
+		userID:          "default", // TODO: In production, get from authenticated session
 		httpClient:      &http.Client{Timeout: 30 * time.Second},
 	}
 }
@@ -243,9 +244,13 @@ func (p *SpotifyProvider) ExportPlaylist(id string) (models.Playlist, error) {
 				Duration: item.Track.DurationMS / 1000, // Convert to seconds
 			}
 
-			// Get artist names
+			// Get all artist names and join them
 			if len(item.Track.Artists) > 0 {
-				track.Artist = item.Track.Artists[0].Name
+				artistNames := make([]string, len(item.Track.Artists))
+				for i, artist := range item.Track.Artists {
+					artistNames[i] = artist.Name
+				}
+				track.Artist = strings.Join(artistNames, ", ")
 			}
 
 			// Get ISRC if available

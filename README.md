@@ -264,7 +264,9 @@ export $(cat .env | xargs) && ./playport
    - View your Spotify playlists
    - Export playlists (coming soon: import to other providers)
 
-**Note**: If you don't configure Spotify credentials, the application will run normally with only the mock provider available.
+**Important Notes**:
+- If you don't configure Spotify credentials, the application will run normally with only the mock provider available.
+- **Current Limitation**: This MVP implementation uses a single shared session. In production, implement proper user authentication and session management to support multiple users. See the TODO comments in the code for guidance.
 
 ## 📝 Future Enhancements
 

@@ -52,7 +52,8 @@ func (h *Handlers) HandleProviders(w http.ResponseWriter, r *http.Request) {
 	providers := h.transferService.ListProviders()
 
 	// Check Spotify connection status
-	userID := "default" // In a real app, get from session
+	// TODO: Replace hard-coded userID with session-based authentication
+	userID := "default" // In production, get from authenticated session
 	spotifyConnected := false
 	spotifyUserName := ""
 	

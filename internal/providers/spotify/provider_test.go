@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/JanikSachs/PlayPort/internal/models"
@@ -30,15 +31,15 @@ func TestSpotifyProvider_AuthURL(t *testing.T) {
 	}
 
 	// Verify URL contains expected components
-	if !contains(authURL, "client_id=client-id") {
+	if !strings.Contains(authURL, "client_id=client-id") {
 		t.Error("AuthURL should contain client_id")
 	}
 
-	if !contains(authURL, "state=test-state") {
+	if !strings.Contains(authURL, "state=test-state") {
 		t.Error("AuthURL should contain state")
 	}
 
-	if !contains(authURL, "redirect_uri=http") {
+	if !strings.Contains(authURL, "redirect_uri=http") {
 		t.Error("AuthURL should contain redirect_uri")
 	}
 }
@@ -149,7 +150,7 @@ func TestSpotifyProvider_ImportPlaylist_NotImplemented(t *testing.T) {
 		t.Error("ImportPlaylist() should return error (not implemented)")
 	}
 
-	if !contains(err.Error(), "not yet implemented") {
+	if !strings.Contains(err.Error(), "not yet implemented") {
 		t.Error("Error message should indicate not implemented")
 	}
 }
@@ -207,14 +208,4 @@ func TestPlaylistsResponse(t *testing.T) {
 	if response.Total != 100 {
 		t.Errorf("Expected total 100, got %d", response.Total)
 	}
-}
-
-// Helper function to check if a string contains a substring
-func contains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
