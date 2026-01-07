@@ -8,19 +8,24 @@ import (
 	"time"
 
 	"github.com/JanikSachs/PlayPort/internal/services"
+	"github.com/JanikSachs/PlayPort/internal/storage"
 )
 
 // Handlers contains all HTTP handlers
 type Handlers struct {
-	transferService *services.TransferService
-	templates       *template.Template
+	transferService  *services.TransferService
+	templates        *template.Template
+	connectionStore  storage.ConnectionStore
+	spotifyEnabled   bool
 }
 
 // NewHandlers creates a new Handlers instance
-func NewHandlers(transferService *services.TransferService, templates *template.Template) *Handlers {
+func NewHandlers(transferService *services.TransferService, templates *template.Template, connectionStore storage.ConnectionStore, spotifyEnabled bool) *Handlers {
 	return &Handlers{
 		transferService: transferService,
 		templates:       templates,
+		connectionStore: connectionStore,
+		spotifyEnabled:  spotifyEnabled,
 	}
 }
 
@@ -46,9 +51,26 @@ func (h *Handlers) HandleHome(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) HandleProviders(w http.ResponseWriter, r *http.Request) {
 	providers := h.transferService.ListProviders()
 
+	// Check Spotify connection status
+	// TODO: Replace hard-coded userID with session-based authentication
+	userID := "default" // In production, get from authenticated session
+	spotifyConnected := false
+	spotifyUserName := ""
+	
+	if h.spotifyEnabled {
+		conn, err := h.connectionStore.Get("spotify", userID)
+		if err == nil && conn.Connected {
+			spotifyConnected = true
+			spotifyUserName = conn.ExternalUserName
+		}
+	}
+
 	data := map[string]interface{}{
-		"Title":     "Available Providers",
-		"Providers": providers,
+		"Title":            "Available Providers",
+		"Providers":        providers,
+		"SpotifyEnabled":   h.spotifyEnabled,
+		"SpotifyConnected": spotifyConnected,
+		"SpotifyUserName":  spotifyUserName,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "providers.html", data); err != nil {

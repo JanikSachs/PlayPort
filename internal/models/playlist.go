@@ -27,11 +27,16 @@ type Playlist struct {
 
 // Connection represents a user's connection to a music platform
 type Connection struct {
-	ID          string    `json:"id"`
-	Provider    string    `json:"provider"`
-	UserID      string    `json:"user_id"`
-	AccessToken string    `json:"access_token"`
-	RefreshToken string   `json:"refresh_token"`
-	ExpiresAt   time.Time `json:"expires_at"`
-	Connected   bool      `json:"connected"`
+	ID               string    `json:"id"`
+	Provider         string    `json:"provider"`           // e.g., "spotify"
+	UserID           string    `json:"user_id"`            // Local app user ID
+	ExternalUserID   string    `json:"external_user_id"`   // Provider's user ID
+	ExternalUserName string    `json:"external_user_name"` // Provider's display name
+	AccessToken      string    `json:"access_token"`
+	RefreshToken     string    `json:"refresh_token"`
+	ExpiresAt        time.Time `json:"expires_at"`
+	Scopes           []string  `json:"scopes"`     // OAuth scopes granted
+	Connected        bool      `json:"connected"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
