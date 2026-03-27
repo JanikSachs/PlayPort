@@ -54,9 +54,34 @@
             </div>
             {{end}}
 
+            {{if .YouTubeMusicEnabled}}
+            <div class="box mt-5">
+                <h2 class="title is-5">YouTube Music</h2>
+                {{if .YouTubeMusicConnected}}
+                <div class="notification is-success is-light">
+                    <p><strong>Connected as:</strong> {{.YouTubeMusicUserName}}</p>
+                </div>
+                <button 
+                    class="button is-info is-fullwidth"
+                    hx-get="/providers/youtubemusic/playlists"
+                    hx-target="#playlist-container"
+                    hx-swap="innerHTML">
+                    Load Playlists
+                </button>
+                {{else}}
+                <div class="notification is-info is-light">
+                    <p>Connect your YouTube Music account to view and transfer your playlists.</p>
+                </div>
+                <a href="/auth/youtubemusic/start" class="button is-info is-fullwidth">
+                    Connect YouTube Music
+                </a>
+                {{end}}
+            </div>
+            {{end}}
+
             <div class="columns is-multiline mt-5">
                 {{range .Providers}}
-                {{if ne . "Spotify"}}
+                {{if and (ne . "Spotify") (ne . "YouTube Music")}}
                 <div class="column is-one-third">
                     <div class="card">
                         <div class="card-content">

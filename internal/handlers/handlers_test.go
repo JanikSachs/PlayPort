@@ -28,7 +28,7 @@ func setupTestHandlers(t *testing.T) *Handlers {
 		t.Fatalf("Failed to parse templates: %v", err)
 	}
 	
-	return NewHandlers(transferService, templates, connectionStore, false)
+	return NewHandlers(transferService, templates, connectionStore, false, false)
 }
 
 func TestHandleHome(t *testing.T) {

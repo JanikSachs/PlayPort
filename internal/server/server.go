@@ -9,24 +9,27 @@ import (
 	"github.com/JanikSachs/PlayPort/internal/auth"
 	"github.com/JanikSachs/PlayPort/internal/handlers"
 	"github.com/JanikSachs/PlayPort/internal/providers/spotify"
+	"github.com/JanikSachs/PlayPort/internal/providers/youtubemusic"
 	"github.com/JanikSachs/PlayPort/internal/services"
 	"github.com/JanikSachs/PlayPort/internal/storage"
 )
 
 // Server represents the HTTP server
 type Server struct {
-	addr              string
-	mux               *http.ServeMux
-	transferService   *services.TransferService
-	templates         *template.Template
-	spotifyProvider   *spotify.SpotifyProvider
-	connectionStore   storage.ConnectionStore
-	stateStore        auth.StateStore
-	spotifyEnabled    bool
+	addr                 string
+	mux                  *http.ServeMux
+	transferService      *services.TransferService
+	templates            *template.Template
+	spotifyProvider      *spotify.SpotifyProvider
+	youtubeMusicProvider *youtubemusic.YouTubeMusicProvider
+	connectionStore      storage.ConnectionStore
+	stateStore           auth.StateStore
+	spotifyEnabled       bool
+	youtubeMusicEnabled  bool
 }
 
 // New creates a new server instance
-func New(addr string, transferService *services.TransferService, spotifyProvider *spotify.SpotifyProvider, connectionStore storage.ConnectionStore, stateStore auth.StateStore, spotifyEnabled bool) (*Server, error) {
+func New(addr string, transferService *services.TransferService, spotifyProvider *spotify.SpotifyProvider, youtubeMusicProvider *youtubemusic.YouTubeMusicProvider, connectionStore storage.ConnectionStore, stateStore auth.StateStore, spotifyEnabled bool, youtubeMusicEnabled bool) (*Server, error) {
 	// Parse templates
 	templates, err := template.ParseGlob(filepath.Join("web", "templates", "*.html"))
 	if err != nil {
@@ -34,14 +37,16 @@ func New(addr string, transferService *services.TransferService, spotifyProvider
 	}
 
 	s := &Server{
-		addr:            addr,
-		mux:             http.NewServeMux(),
-		transferService: transferService,
-		templates:       templates,
-		spotifyProvider: spotifyProvider,
-		connectionStore: connectionStore,
-		stateStore:      stateStore,
-		spotifyEnabled:  spotifyEnabled,
+		addr:                addr,
+		mux:                 http.NewServeMux(),
+		transferService:     transferService,
+		templates:           templates,
+		spotifyProvider:     spotifyProvider,
+		youtubeMusicProvider: youtubeMusicProvider,
+		connectionStore:     connectionStore,
+		stateStore:          stateStore,
+		spotifyEnabled:      spotifyEnabled,
+		youtubeMusicEnabled: youtubeMusicEnabled,
 	}
 
 	s.setupRoutes()
@@ -51,9 +56,9 @@ func New(addr string, transferService *services.TransferService, spotifyProvider
 // setupRoutes configures all HTTP routes
 func (s *Server) setupRoutes() {
 	// Create handlers
-	h := handlers.NewHandlers(s.transferService, s.templates, s.connectionStore, s.spotifyEnabled)
-	authHandlers := handlers.NewAuthHandlers(s.spotifyProvider, s.stateStore, s.spotifyEnabled)
-	providerHandlers := handlers.NewProviderHandlers(s.spotifyProvider, s.connectionStore, s.templates, s.spotifyEnabled)
+	h := handlers.NewHandlers(s.transferService, s.templates, s.connectionStore, s.spotifyEnabled, s.youtubeMusicEnabled)
+	authHandlers := handlers.NewAuthHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.stateStore, s.spotifyEnabled, s.youtubeMusicEnabled)
+	providerHandlers := handlers.NewProviderHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.connectionStore, s.templates, s.spotifyEnabled, s.youtubeMusicEnabled)
 
 	// Static files
 	fs := http.FileServer(http.Dir("web/static"))
@@ -64,12 +69,17 @@ func (s *Server) setupRoutes() {
 	s.mux.HandleFunc("/providers", h.HandleProviders)
 	s.mux.HandleFunc("/transfer", h.HandleTransfer)
 
-	// OAuth routes
+	// OAuth routes - Spotify
 	s.mux.HandleFunc("/auth/spotify/start", authHandlers.HandleSpotifyStart)
 	s.mux.HandleFunc("/auth/spotify/callback", authHandlers.HandleSpotifyCallback)
 
+	// OAuth routes - YouTube Music
+	s.mux.HandleFunc("/auth/youtubemusic/start", authHandlers.HandleYouTubeMusicStart)
+	s.mux.HandleFunc("/auth/youtubemusic/callback", authHandlers.HandleYouTubeMusicCallback)
+
 	// Provider-specific endpoints
 	s.mux.HandleFunc("/providers/spotify/playlists", providerHandlers.HandleSpotifyPlaylists)
+	s.mux.HandleFunc("/providers/youtubemusic/playlists", providerHandlers.HandleYouTubeMusicPlaylists)
 
 	// HTMX endpoints
 	s.mux.HandleFunc("/api/playlists", h.HandleGetPlaylists)
