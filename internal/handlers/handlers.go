@@ -177,6 +177,7 @@ func (h *Handlers) HandleStartTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Start transfer (simulated with delay for demo)
+	userID := middleware.UserIDFromContext(r.Context())
 	progress := &services.TransferProgress{
 		PlaylistID:     playlistID,
 		SourceProvider: sourceProvider,
@@ -190,7 +191,7 @@ func (h *Handlers) HandleStartTransfer(w http.ResponseWriter, r *http.Request) {
 	// Simulate transfer
 	go func() {
 		time.Sleep(2 * time.Second)
-		if err := h.transferService.TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, middleware.UserIDFromContext(r.Context())); err != nil {
+		if err := h.transferService.TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, userID); err != nil {
 			log.Printf("Transfer failed: %v", err)
 		}
 	}()

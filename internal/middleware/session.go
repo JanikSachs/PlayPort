@@ -51,6 +51,7 @@ func SessionMiddleware(sessionStore auth.SessionStore, userStore storage.UserSto
 					Value:    token,
 					Path:     "/",
 					HttpOnly: true,
+					Secure:   true,
 					SameSite: http.SameSiteLaxMode,
 					Expires:  time.Now().Add(24 * time.Hour),
 				})

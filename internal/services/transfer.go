@@ -42,11 +42,6 @@ func (s *TransferService) ListProviders() []string {
 	return names
 }
 
-// TransferPlaylist transfers a playlist from source to target provider
-func (s *TransferService) TransferPlaylist(sourceProvider, targetProvider, playlistID string) error {
-	return s.TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, "")
-}
-
 // TransferPlaylistForUser transfers a playlist from source to target provider for a specific user
 func (s *TransferService) TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, userID string) error {
 	// Get source provider
