@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
+    <script>(function(){var t=localStorage.getItem('playport-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}})();</script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <link rel="stylesheet" href="/static/css/custom.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
@@ -24,6 +25,11 @@
             <div class="navbar-end">
                 <div class="navbar-item">
                     <span class="tag is-light">v{{.Version}}</span>
+                </div>
+                <div class="navbar-item">
+                    <button id="theme-toggle" class="button is-small" aria-label="Toggle dark mode" title="Toggle dark/light mode">
+                        <span id="theme-icon">🌙</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -82,5 +88,20 @@
             </p>
         </div>
     </footer>
+    <script>
+        (function() {
+            var icon = document.getElementById('theme-icon');
+            var btn = document.getElementById('theme-toggle');
+            var theme = localStorage.getItem('playport-theme') || 'light';
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            btn.addEventListener('click', function() {
+                var current = document.documentElement.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                icon.textContent = next === 'dark' ? '☀️' : '🌙';
+                localStorage.setItem('playport-theme', next);
+            });
+        })();
+    </script>
 </body>
 </html>
