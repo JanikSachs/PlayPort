@@ -21,6 +21,7 @@ func setupTestHandlers(t *testing.T) *Handlers {
 	
 	// Create connection store
 	connectionStore := storage.NewInMemoryConnectionStore()
+	userStore := storage.NewInMemoryUserStore()
 	
 	// Parse templates
 	templates, err := template.ParseGlob("../../web/templates/*.html")
@@ -28,7 +29,7 @@ func setupTestHandlers(t *testing.T) *Handlers {
 		t.Fatalf("Failed to parse templates: %v", err)
 	}
 	
-	return NewHandlers(transferService, templates, connectionStore, false, false)
+	return NewHandlers(transferService, templates, connectionStore, userStore, false, false)
 }
 
 func TestHandleHome(t *testing.T) {

@@ -17,6 +17,12 @@ type UserStore interface {
 
 	// Get retrieves a user by ID
 	Get(id string) (*models.User, error)
+
+	// CreateWithCredentials creates a new user with a username and password hash
+	CreateWithCredentials(username, passwordHash string) (*models.User, error)
+
+	// GetByUsername retrieves a user by username
+	GetByUsername(username string) (*models.User, error)
 }
 
 // InMemoryUserStore is a thread-safe in-memory user store
@@ -62,4 +68,46 @@ func (s *InMemoryUserStore) Get(id string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+// CreateWithCredentials creates a new user with a username and password hash
+func (s *InMemoryUserStore) CreateWithCredentials(username, passwordHash string) (*models.User, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return nil, fmt.Errorf("failed to generate user ID: %w", err)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Check for duplicate username
+	for _, u := range s.users {
+		if u.Username == username {
+			return nil, fmt.Errorf("username already taken: %s", username)
+		}
+	}
+
+	user := &models.User{
+		ID:           hex.EncodeToString(b),
+		Username:     username,
+		PasswordHash: passwordHash,
+		CreatedAt:    time.Now(),
+	}
+
+	s.users[user.ID] = user
+	return user, nil
+}
+
+// GetByUsername retrieves a user by username
+func (s *InMemoryUserStore) GetByUsername(username string) (*models.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, user := range s.users {
+		if user.Username == username {
+			return user, nil
+		}
+	}
+
+	return nil, fmt.Errorf("user not found: %s", username)
 }

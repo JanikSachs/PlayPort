@@ -21,6 +21,18 @@
                 <a class="navbar-item" href="/providers">Providers</a>
                 <a class="navbar-item" href="/transfer">Transfer</a>
             </div>
+            <div class="navbar-end">
+                {{if .Username}}
+                <div class="navbar-item">
+                    <strong>{{.Username}}</strong>
+                </div>
+                <div class="navbar-item">
+                    <form method="POST" action="/logout" style="margin:0">
+                        <button class="button is-light is-small" type="submit">Log out</button>
+                    </form>
+                </div>
+                {{end}}
+            </div>
         </div>
     </nav>
 

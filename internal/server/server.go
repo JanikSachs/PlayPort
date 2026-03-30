@@ -61,13 +61,30 @@ func New(addr string, transferService *services.TransferService, spotifyProvider
 // setupRoutes configures all HTTP routes
 func (s *Server) setupRoutes() {
 	// Create handlers
-	h := handlers.NewHandlers(s.transferService, s.templates, s.connectionStore, s.spotifyEnabled, s.youtubeMusicEnabled)
-	authHandlers := handlers.NewAuthHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.stateStore, s.spotifyEnabled, s.youtubeMusicEnabled)
+	h := handlers.NewHandlers(s.transferService, s.templates, s.connectionStore, s.userStore, s.spotifyEnabled, s.youtubeMusicEnabled)
+	authHandlers := handlers.NewAuthHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.stateStore, s.userStore, s.sessionStore, s.templates, s.spotifyEnabled, s.youtubeMusicEnabled)
 	providerHandlers := handlers.NewProviderHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.connectionStore, s.templates, s.spotifyEnabled, s.youtubeMusicEnabled)
 
 	// Static files
 	fs := http.FileServer(http.Dir("web/static"))
 	s.mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// Auth routes
+	s.mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			authHandlers.HandleLogin(w, r)
+		} else {
+			authHandlers.HandleLoginPage(w, r)
+		}
+	})
+	s.mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			authHandlers.HandleRegister(w, r)
+		} else {
+			authHandlers.HandleRegisterPage(w, r)
+		}
+	})
+	s.mux.HandleFunc("/logout", authHandlers.HandleLogout)
 
 	// Pages
 	s.mux.HandleFunc("/", h.HandleHome)
@@ -94,6 +111,6 @@ func (s *Server) setupRoutes() {
 // Start starts the HTTP server
 func (s *Server) Start() error {
 	log.Printf("Server starting on %s", s.addr)
-	sessionMW := middleware.SessionMiddleware(s.sessionStore, s.userStore)
+	sessionMW := middleware.SessionMiddleware(s.sessionStore)
 	return http.ListenAndServe(s.addr, sessionMW(s.mux))
 }

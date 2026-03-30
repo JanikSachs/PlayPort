@@ -18,16 +18,18 @@ type Handlers struct {
 	transferService       *services.TransferService
 	templates             *template.Template
 	connectionStore       storage.ConnectionStore
+	userStore             storage.UserStore
 	spotifyEnabled        bool
 	youtubeMusicEnabled   bool
 }
 
 // NewHandlers creates a new Handlers instance
-func NewHandlers(transferService *services.TransferService, templates *template.Template, connectionStore storage.ConnectionStore, spotifyEnabled bool, youtubeMusicEnabled bool) *Handlers {
+func NewHandlers(transferService *services.TransferService, templates *template.Template, connectionStore storage.ConnectionStore, userStore storage.UserStore, spotifyEnabled bool, youtubeMusicEnabled bool) *Handlers {
 	return &Handlers{
 		transferService:     transferService,
 		templates:           templates,
 		connectionStore:     connectionStore,
+		userStore:           userStore,
 		spotifyEnabled:      spotifyEnabled,
 		youtubeMusicEnabled: youtubeMusicEnabled,
 	}
@@ -41,8 +43,9 @@ func (h *Handlers) HandleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":   "PlayPort - Transfer Your Playlists",
-		"Version": version.Version,
+		"Title":    "PlayPort - Transfer Your Playlists",
+		"Version":  version.Version,
+		"Username": h.getUsernameFromContext(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "home.html", data); err != nil {
@@ -90,6 +93,7 @@ func (h *Handlers) HandleProviders(w http.ResponseWriter, r *http.Request) {
 		"YouTubeMusicEnabled":    h.youtubeMusicEnabled,
 		"YouTubeMusicConnected":  youtubeMusicConnected,
 		"YouTubeMusicUserName":   youtubeMusicUserName,
+		"Username":               h.getUsernameFromContext(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "providers.html", data); err != nil {
@@ -106,6 +110,7 @@ func (h *Handlers) HandleTransfer(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"Title":     "Transfer Playlists",
 		"Providers": providers,
+		"Username":  h.getUsernameFromContext(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "transfer.html", data); err != nil {
@@ -219,6 +224,19 @@ func (h *Handlers) HandleStartTransfer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// getUsernameFromContext retrieves the username from the request context
+func (h *Handlers) getUsernameFromContext(r *http.Request) string {
+	userID := middleware.UserIDFromContext(r.Context())
+	if userID == "" {
+		return ""
+	}
+	user, err := h.userStore.Get(userID)
+	if err != nil {
+		return ""
+	}
+	return user.Username
 }
 
 // RespondJSON sends a JSON response

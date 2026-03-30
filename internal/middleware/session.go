@@ -2,67 +2,71 @@ package middleware
 
 import (
 	"context"
-	"log"
 	"net/http"
-	"time"
+	"strings"
 
 	"github.com/JanikSachs/PlayPort/internal/auth"
-	"github.com/JanikSachs/PlayPort/internal/storage"
 )
 
 type contextKey string
 
 const userIDKey contextKey = "userID"
 
-// SessionMiddleware returns an HTTP middleware that manages anonymous sessions.
+// SessionMiddleware returns an HTTP middleware that enforces authentication.
 // It reads a "session_token" cookie, looks up the session, and injects the userID
-// into the request context. If no valid session exists, a new anonymous user and
-// session are created automatically.
-func SessionMiddleware(sessionStore auth.SessionStore, userStore storage.UserStore) func(http.Handler) http.Handler {
+// into the request context. Unauthenticated requests are redirected to /login,
+// except for public paths (login, register, static assets).
+func SessionMiddleware(sessionStore auth.SessionStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var userID string
-
-			cookie, err := r.Cookie("session_token")
-			if err == nil {
-				uid, err := sessionStore.Get(cookie.Value)
+			// Allow public paths without authentication
+			if isPublicPath(r) {
+				// Still try to inject userID if session exists
+				cookie, err := r.Cookie("session_token")
 				if err == nil {
-					userID = uid
+					uid, err := sessionStore.Get(cookie.Value)
+					if err == nil {
+						ctx := context.WithValue(r.Context(), userIDKey, uid)
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
+					}
 				}
+				next.ServeHTTP(w, r)
+				return
 			}
 
-			if userID == "" {
-				user, err := userStore.Create()
-				if err != nil {
-					log.Printf("Failed to create user: %v", err)
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-
-				token, err := sessionStore.Create(user.ID)
-				if err != nil {
-					log.Printf("Failed to create session: %v", err)
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-
-				http.SetCookie(w, &http.Cookie{
-					Name:     "session_token",
-					Value:    token,
-					Path:     "/",
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteLaxMode,
-					Expires:  time.Now().Add(24 * time.Hour),
-				})
-
-				userID = user.ID
+			// For protected paths, require authentication
+			cookie, err := r.Cookie("session_token")
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusFound)
+				return
 			}
 
-			ctx := context.WithValue(r.Context(), userIDKey, userID)
+			uid, err := sessionStore.Get(cookie.Value)
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusFound)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), userIDKey, uid)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// isPublicPath returns true for paths that don't require authentication
+func isPublicPath(r *http.Request) bool {
+	path := r.URL.Path
+
+	if path == "/login" || path == "/register" || path == "/logout" {
+		return true
+	}
+
+	if strings.HasPrefix(path, "/static/") {
+		return true
+	}
+
+	return false
 }
 
 // UserIDFromContext retrieves the userID from the request context.
