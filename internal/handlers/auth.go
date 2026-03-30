@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/JanikSachs/PlayPort/internal/auth"
+	"github.com/JanikSachs/PlayPort/internal/middleware"
 	"github.com/JanikSachs/PlayPort/internal/providers/spotify"
 	"github.com/JanikSachs/PlayPort/internal/providers/youtubemusic"
 )
@@ -90,7 +91,7 @@ func (h *AuthHandlers) HandleSpotifyCallback(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Save connection
-	if err := h.spotifyProvider.SaveConnection(ctx, token); err != nil {
+	if err := h.spotifyProvider.SaveConnection(ctx, token, middleware.UserIDFromContext(r.Context())); err != nil {
 		log.Printf("Failed to save connection: %v", err)
 		http.Error(w, "Failed to save connection", http.StatusInternalServerError)
 		return
@@ -159,7 +160,7 @@ func (h *AuthHandlers) HandleYouTubeMusicCallback(w http.ResponseWriter, r *http
 	}
 
 	// Save connection
-	if err := h.youtubeMusicProvider.SaveConnection(ctx, token); err != nil {
+	if err := h.youtubeMusicProvider.SaveConnection(ctx, token, middleware.UserIDFromContext(r.Context())); err != nil {
 		log.Printf("Failed to save connection: %v", err)
 		http.Error(w, "Failed to save connection", http.StatusInternalServerError)
 		return

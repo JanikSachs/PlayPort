@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/JanikSachs/PlayPort/internal/middleware"
 	"github.com/JanikSachs/PlayPort/internal/services"
 	"github.com/JanikSachs/PlayPort/internal/storage"
 	"github.com/JanikSachs/PlayPort/internal/version"
@@ -56,8 +57,7 @@ func (h *Handlers) HandleProviders(w http.ResponseWriter, r *http.Request) {
 	providers := h.transferService.ListProviders()
 
 	// Check Spotify connection status
-	// TODO: Replace hard-coded userID with session-based authentication
-	userID := "default" // In production, get from authenticated session
+	userID := middleware.UserIDFromContext(r.Context())
 	spotifyConnected := false
 	spotifyUserName := ""
 
@@ -130,13 +130,13 @@ func (h *Handlers) HandleGetPlaylists(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authenticate
-	if err := provider.Authenticate(); err != nil {
+	if err := provider.Authenticate(middleware.UserIDFromContext(r.Context())); err != nil {
 		http.Error(w, "Authentication failed", http.StatusInternalServerError)
 		return
 	}
 
 	// Get playlists
-	playlists, err := provider.GetPlaylists()
+	playlists, err := provider.GetPlaylists(middleware.UserIDFromContext(r.Context()))
 	if err != nil {
 		http.Error(w, "Failed to fetch playlists", http.StatusInternalServerError)
 		return
@@ -190,7 +190,7 @@ func (h *Handlers) HandleStartTransfer(w http.ResponseWriter, r *http.Request) {
 	// Simulate transfer
 	go func() {
 		time.Sleep(2 * time.Second)
-		if err := h.transferService.TransferPlaylist(sourceProvider, targetProvider, playlistID); err != nil {
+		if err := h.transferService.TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, middleware.UserIDFromContext(r.Context())); err != nil {
 			log.Printf("Transfer failed: %v", err)
 		}
 	}()

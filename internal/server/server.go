@@ -8,6 +8,7 @@ import (
 
 	"github.com/JanikSachs/PlayPort/internal/auth"
 	"github.com/JanikSachs/PlayPort/internal/handlers"
+	"github.com/JanikSachs/PlayPort/internal/middleware"
 	"github.com/JanikSachs/PlayPort/internal/providers/spotify"
 	"github.com/JanikSachs/PlayPort/internal/providers/youtubemusic"
 	"github.com/JanikSachs/PlayPort/internal/services"
@@ -23,13 +24,15 @@ type Server struct {
 	spotifyProvider      *spotify.SpotifyProvider
 	youtubeMusicProvider *youtubemusic.YouTubeMusicProvider
 	connectionStore      storage.ConnectionStore
+	userStore            storage.UserStore
 	stateStore           auth.StateStore
+	sessionStore         auth.SessionStore
 	spotifyEnabled       bool
 	youtubeMusicEnabled  bool
 }
 
 // New creates a new server instance
-func New(addr string, transferService *services.TransferService, spotifyProvider *spotify.SpotifyProvider, youtubeMusicProvider *youtubemusic.YouTubeMusicProvider, connectionStore storage.ConnectionStore, stateStore auth.StateStore, spotifyEnabled bool, youtubeMusicEnabled bool) (*Server, error) {
+func New(addr string, transferService *services.TransferService, spotifyProvider *spotify.SpotifyProvider, youtubeMusicProvider *youtubemusic.YouTubeMusicProvider, connectionStore storage.ConnectionStore, userStore storage.UserStore, stateStore auth.StateStore, sessionStore auth.SessionStore, spotifyEnabled bool, youtubeMusicEnabled bool) (*Server, error) {
 	// Parse templates
 	templates, err := template.ParseGlob(filepath.Join("web", "templates", "*.html"))
 	if err != nil {
@@ -44,7 +47,9 @@ func New(addr string, transferService *services.TransferService, spotifyProvider
 		spotifyProvider:     spotifyProvider,
 		youtubeMusicProvider: youtubeMusicProvider,
 		connectionStore:     connectionStore,
+		userStore:           userStore,
 		stateStore:          stateStore,
+		sessionStore:        sessionStore,
 		spotifyEnabled:      spotifyEnabled,
 		youtubeMusicEnabled: youtubeMusicEnabled,
 	}
@@ -89,5 +94,6 @@ func (s *Server) setupRoutes() {
 // Start starts the HTTP server
 func (s *Server) Start() error {
 	log.Printf("Server starting on %s", s.addr)
-	return http.ListenAndServe(s.addr, s.mux)
+	sessionMW := middleware.SessionMiddleware(s.sessionStore, s.userStore)
+	return http.ListenAndServe(s.addr, sessionMW(s.mux))
 }

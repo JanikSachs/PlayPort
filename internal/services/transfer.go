@@ -44,6 +44,11 @@ func (s *TransferService) ListProviders() []string {
 
 // TransferPlaylist transfers a playlist from source to target provider
 func (s *TransferService) TransferPlaylist(sourceProvider, targetProvider, playlistID string) error {
+	return s.TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, "")
+}
+
+// TransferPlaylistForUser transfers a playlist from source to target provider for a specific user
+func (s *TransferService) TransferPlaylistForUser(sourceProvider, targetProvider, playlistID, userID string) error {
 	// Get source provider
 	source, err := s.GetProvider(sourceProvider)
 	if err != nil {
@@ -57,17 +62,17 @@ func (s *TransferService) TransferPlaylist(sourceProvider, targetProvider, playl
 	}
 
 	// Authenticate with source
-	if err := source.Authenticate(); err != nil {
+	if err := source.Authenticate(userID); err != nil {
 		return fmt.Errorf("source authentication failed: %w", err)
 	}
 
 	// Authenticate with target
-	if err := target.Authenticate(); err != nil {
+	if err := target.Authenticate(userID); err != nil {
 		return fmt.Errorf("target authentication failed: %w", err)
 	}
 
 	// Export playlist from source
-	playlist, err := source.ExportPlaylist(playlistID)
+	playlist, err := source.ExportPlaylist(userID, playlistID)
 	if err != nil {
 		return fmt.Errorf("export failed: %w", err)
 	}

@@ -26,7 +26,6 @@ const (
 type YouTubeMusicProvider struct {
 	config          *oauth2.Config
 	connectionStore storage.ConnectionStore
-	userID          string // Current user ID - TODO: Replace with session-based user identification
 	httpClient      *http.Client
 }
 
@@ -45,7 +44,6 @@ func NewYouTubeMusicProvider(clientID, clientSecret, redirectURL string, connect
 	return &YouTubeMusicProvider{
 		config:          config,
 		connectionStore: connectionStore,
-		userID:          "default", // TODO: In production, get from authenticated session
 		httpClient:      &http.Client{Timeout: 30 * time.Second},
 	}
 }
@@ -56,8 +54,8 @@ func (p *YouTubeMusicProvider) Name() string {
 }
 
 // Authenticate checks if the user has a valid connection
-func (p *YouTubeMusicProvider) Authenticate() error {
-	conn, err := p.connectionStore.Get("youtubemusic", p.userID)
+func (p *YouTubeMusicProvider) Authenticate(userID string) error {
+	conn, err := p.connectionStore.Get("youtubemusic", userID)
 	if err != nil {
 		return fmt.Errorf("not connected to YouTube Music: %w", err)
 	}
@@ -80,7 +78,7 @@ func (p *YouTubeMusicProvider) Exchange(ctx context.Context, code string) (*oaut
 }
 
 // SaveConnection saves a connection after OAuth
-func (p *YouTubeMusicProvider) SaveConnection(ctx context.Context, token *oauth2.Token) error {
+func (p *YouTubeMusicProvider) SaveConnection(ctx context.Context, token *oauth2.Token, userID string) error {
 	// Get user channel to obtain the YouTube channel ID and display name
 	channel, err := p.getUserChannel(ctx, token)
 	if err != nil {
@@ -89,7 +87,7 @@ func (p *YouTubeMusicProvider) SaveConnection(ctx context.Context, token *oauth2
 
 	conn := &models.Connection{
 		Provider:         "youtubemusic",
-		UserID:           p.userID,
+		UserID:           userID,
 		ExternalUserID:   channel.ID,
 		ExternalUserName: channel.Snippet.Title,
 		AccessToken:      token.AccessToken,
@@ -103,8 +101,8 @@ func (p *YouTubeMusicProvider) SaveConnection(ctx context.Context, token *oauth2
 }
 
 // GetPlaylists retrieves all playlists for the authenticated user
-func (p *YouTubeMusicProvider) GetPlaylists() ([]models.Playlist, error) {
-	conn, err := p.connectionStore.Get("youtubemusic", p.userID)
+func (p *YouTubeMusicProvider) GetPlaylists(userID string) ([]models.Playlist, error) {
+	conn, err := p.connectionStore.Get("youtubemusic", userID)
 	if err != nil {
 		return nil, fmt.Errorf("not connected: %w", err)
 	}
@@ -173,8 +171,8 @@ func (p *YouTubeMusicProvider) GetPlaylists() ([]models.Playlist, error) {
 }
 
 // ExportPlaylist exports a specific playlist by ID
-func (p *YouTubeMusicProvider) ExportPlaylist(id string) (models.Playlist, error) {
-	conn, err := p.connectionStore.Get("youtubemusic", p.userID)
+func (p *YouTubeMusicProvider) ExportPlaylist(userID, id string) (models.Playlist, error) {
+	conn, err := p.connectionStore.Get("youtubemusic", userID)
 	if err != nil {
 		return models.Playlist{}, fmt.Errorf("not connected: %w", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/JanikSachs/PlayPort/internal/middleware"
 	"github.com/JanikSachs/PlayPort/internal/providers/spotify"
 	"github.com/JanikSachs/PlayPort/internal/providers/youtubemusic"
 	"github.com/JanikSachs/PlayPort/internal/storage"
@@ -40,7 +41,7 @@ func (h *ProviderHandlers) HandleSpotifyPlaylists(w http.ResponseWriter, r *http
 	}
 
 	// Check authentication
-	if err := h.spotifyProvider.Authenticate(); err != nil {
+	if err := h.spotifyProvider.Authenticate(middleware.UserIDFromContext(r.Context())); err != nil {
 		log.Printf("Spotify not authenticated: %v", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := h.templates.ExecuteTemplate(w, "spotify-not-connected.html", nil); err != nil {
@@ -51,7 +52,7 @@ func (h *ProviderHandlers) HandleSpotifyPlaylists(w http.ResponseWriter, r *http
 	}
 
 	// Get playlists
-	playlists, err := h.spotifyProvider.GetPlaylists()
+	playlists, err := h.spotifyProvider.GetPlaylists(middleware.UserIDFromContext(r.Context()))
 	if err != nil {
 		log.Printf("Failed to fetch Spotify playlists: %v", err)
 		http.Error(w, "Failed to fetch playlists", http.StatusInternalServerError)
@@ -79,7 +80,7 @@ func (h *ProviderHandlers) HandleYouTubeMusicPlaylists(w http.ResponseWriter, r 
 	}
 
 	// Check authentication
-	if err := h.youtubeMusicProvider.Authenticate(); err != nil {
+	if err := h.youtubeMusicProvider.Authenticate(middleware.UserIDFromContext(r.Context())); err != nil {
 		log.Printf("YouTube Music not authenticated: %v", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := h.templates.ExecuteTemplate(w, "youtubemusic-not-connected.html", nil); err != nil {
@@ -90,7 +91,7 @@ func (h *ProviderHandlers) HandleYouTubeMusicPlaylists(w http.ResponseWriter, r 
 	}
 
 	// Get playlists
-	playlists, err := h.youtubeMusicProvider.GetPlaylists()
+	playlists, err := h.youtubeMusicProvider.GetPlaylists(middleware.UserIDFromContext(r.Context()))
 	if err != nil {
 		log.Printf("Failed to fetch YouTube Music playlists: %v", err)
 		http.Error(w, "Failed to fetch playlists", http.StatusInternalServerError)

@@ -111,13 +111,13 @@ func (m *MockProvider) Name() string {
 }
 
 // Authenticate simulates authentication
-func (m *MockProvider) Authenticate() error {
+func (m *MockProvider) Authenticate(userID string) error {
 	m.authenticated = true
 	return nil
 }
 
 // GetPlaylists returns mock playlists
-func (m *MockProvider) GetPlaylists() ([]models.Playlist, error) {
+func (m *MockProvider) GetPlaylists(userID string) ([]models.Playlist, error) {
 	if !m.authenticated {
 		return nil, fmt.Errorf("not authenticated")
 	}
@@ -125,7 +125,7 @@ func (m *MockProvider) GetPlaylists() ([]models.Playlist, error) {
 }
 
 // ExportPlaylist exports a specific playlist by ID
-func (m *MockProvider) ExportPlaylist(id string) (models.Playlist, error) {
+func (m *MockProvider) ExportPlaylist(userID, id string) (models.Playlist, error) {
 	if !m.authenticated {
 		return models.Playlist{}, fmt.Errorf("not authenticated")
 	}

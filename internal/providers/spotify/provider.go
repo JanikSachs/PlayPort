@@ -24,7 +24,6 @@ const (
 type SpotifyProvider struct {
 	config          *oauth2.Config
 	connectionStore storage.ConnectionStore
-	userID          string // Current user ID - TODO: Replace with session-based user identification
 	httpClient      *http.Client
 }
 
@@ -46,7 +45,6 @@ func NewSpotifyProvider(clientID, clientSecret, redirectURL string, connectionSt
 	return &SpotifyProvider{
 		config:          config,
 		connectionStore: connectionStore,
-		userID:          "default", // TODO: In production, get from authenticated session
 		httpClient:      &http.Client{Timeout: 30 * time.Second},
 	}
 }
@@ -57,8 +55,8 @@ func (p *SpotifyProvider) Name() string {
 }
 
 // Authenticate checks if the user has a valid connection
-func (p *SpotifyProvider) Authenticate() error {
-	conn, err := p.connectionStore.Get("spotify", p.userID)
+func (p *SpotifyProvider) Authenticate(userID string) error {
+	conn, err := p.connectionStore.Get("spotify", userID)
 	if err != nil {
 		return fmt.Errorf("not connected to Spotify: %w", err)
 	}
@@ -81,7 +79,7 @@ func (p *SpotifyProvider) Exchange(ctx context.Context, code string) (*oauth2.To
 }
 
 // SaveConnection saves a connection after OAuth
-func (p *SpotifyProvider) SaveConnection(ctx context.Context, token *oauth2.Token) error {
+func (p *SpotifyProvider) SaveConnection(ctx context.Context, token *oauth2.Token, userID string) error {
 	// Get user profile to get Spotify user ID
 	profile, err := p.getUserProfile(ctx, token)
 	if err != nil {
@@ -90,7 +88,7 @@ func (p *SpotifyProvider) SaveConnection(ctx context.Context, token *oauth2.Toke
 
 	conn := &models.Connection{
 		Provider:         "spotify",
-		UserID:           p.userID,
+		UserID:           userID,
 		ExternalUserID:   profile.ID,
 		ExternalUserName: profile.DisplayName,
 		AccessToken:      token.AccessToken,
@@ -104,8 +102,8 @@ func (p *SpotifyProvider) SaveConnection(ctx context.Context, token *oauth2.Toke
 }
 
 // GetPlaylists retrieves all playlists for the authenticated user
-func (p *SpotifyProvider) GetPlaylists() ([]models.Playlist, error) {
-	conn, err := p.connectionStore.Get("spotify", p.userID)
+func (p *SpotifyProvider) GetPlaylists(userID string) ([]models.Playlist, error) {
+	conn, err := p.connectionStore.Get("spotify", userID)
 	if err != nil {
 		return nil, fmt.Errorf("not connected: %w", err)
 	}
@@ -166,8 +164,8 @@ func (p *SpotifyProvider) GetPlaylists() ([]models.Playlist, error) {
 }
 
 // ExportPlaylist exports a specific playlist by ID
-func (p *SpotifyProvider) ExportPlaylist(id string) (models.Playlist, error) {
-	conn, err := p.connectionStore.Get("spotify", p.userID)
+func (p *SpotifyProvider) ExportPlaylist(userID, id string) (models.Playlist, error) {
+	conn, err := p.connectionStore.Get("spotify", userID)
 	if err != nil {
 		return models.Playlist{}, fmt.Errorf("not connected: %w", err)
 	}
