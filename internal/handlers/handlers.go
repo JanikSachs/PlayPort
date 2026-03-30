@@ -9,6 +9,7 @@ import (
 
 	"github.com/JanikSachs/PlayPort/internal/services"
 	"github.com/JanikSachs/PlayPort/internal/storage"
+	"github.com/JanikSachs/PlayPort/internal/version"
 )
 
 // Handlers contains all HTTP handlers
@@ -37,7 +38,8 @@ func (h *Handlers) HandleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title": "PlayPort - Transfer Your Playlists",
+		"Title":   "PlayPort - Transfer Your Playlists",
+		"Version": version.Version,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "home.html", data); err != nil {
