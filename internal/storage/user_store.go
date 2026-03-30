@@ -27,14 +27,16 @@ type UserStore interface {
 
 // InMemoryUserStore is a thread-safe in-memory user store
 type InMemoryUserStore struct {
-	mu    sync.RWMutex
-	users map[string]*models.User
+	mu          sync.RWMutex
+	users       map[string]*models.User
+	byUsername  map[string]string // username -> user ID
 }
 
 // NewInMemoryUserStore creates a new in-memory user store
 func NewInMemoryUserStore() *InMemoryUserStore {
 	return &InMemoryUserStore{
-		users: make(map[string]*models.User),
+		users:      make(map[string]*models.User),
+		byUsername: make(map[string]string),
 	}
 }
 
@@ -81,10 +83,8 @@ func (s *InMemoryUserStore) CreateWithCredentials(username, passwordHash string)
 	defer s.mu.Unlock()
 
 	// Check for duplicate username
-	for _, u := range s.users {
-		if u.Username == username {
-			return nil, fmt.Errorf("username already taken: %s", username)
-		}
+	if _, exists := s.byUsername[username]; exists {
+		return nil, fmt.Errorf("username already taken: %s", username)
 	}
 
 	user := &models.User{
@@ -95,6 +95,7 @@ func (s *InMemoryUserStore) CreateWithCredentials(username, passwordHash string)
 	}
 
 	s.users[user.ID] = user
+	s.byUsername[username] = user.ID
 	return user, nil
 }
 
@@ -103,11 +104,10 @@ func (s *InMemoryUserStore) GetByUsername(username string) (*models.User, error)
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, user := range s.users {
-		if user.Username == username {
-			return user, nil
-		}
+	id, exists := s.byUsername[username]
+	if !exists {
+		return nil, fmt.Errorf("user not found: %s", username)
 	}
 
-	return nil, fmt.Errorf("user not found: %s", username)
+	return s.users[id], nil
 }
