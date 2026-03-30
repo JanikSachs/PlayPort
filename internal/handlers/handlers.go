@@ -14,19 +14,21 @@ import (
 
 // Handlers contains all HTTP handlers
 type Handlers struct {
-	transferService  *services.TransferService
-	templates        *template.Template
-	connectionStore  storage.ConnectionStore
-	spotifyEnabled   bool
+	transferService       *services.TransferService
+	templates             *template.Template
+	connectionStore       storage.ConnectionStore
+	spotifyEnabled        bool
+	youtubeMusicEnabled   bool
 }
 
 // NewHandlers creates a new Handlers instance
-func NewHandlers(transferService *services.TransferService, templates *template.Template, connectionStore storage.ConnectionStore, spotifyEnabled bool) *Handlers {
+func NewHandlers(transferService *services.TransferService, templates *template.Template, connectionStore storage.ConnectionStore, spotifyEnabled bool, youtubeMusicEnabled bool) *Handlers {
 	return &Handlers{
-		transferService: transferService,
-		templates:       templates,
-		connectionStore: connectionStore,
-		spotifyEnabled:  spotifyEnabled,
+		transferService:     transferService,
+		templates:           templates,
+		connectionStore:     connectionStore,
+		spotifyEnabled:      spotifyEnabled,
+		youtubeMusicEnabled: youtubeMusicEnabled,
 	}
 }
 
@@ -58,7 +60,7 @@ func (h *Handlers) HandleProviders(w http.ResponseWriter, r *http.Request) {
 	userID := "default" // In production, get from authenticated session
 	spotifyConnected := false
 	spotifyUserName := ""
-	
+
 	if h.spotifyEnabled {
 		conn, err := h.connectionStore.Get("spotify", userID)
 		if err == nil && conn.Connected {
@@ -67,12 +69,27 @@ func (h *Handlers) HandleProviders(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check YouTube Music connection status
+	youtubeMusicConnected := false
+	youtubeMusicUserName := ""
+
+	if h.youtubeMusicEnabled {
+		conn, err := h.connectionStore.Get("youtubemusic", userID)
+		if err == nil && conn.Connected {
+			youtubeMusicConnected = true
+			youtubeMusicUserName = conn.ExternalUserName
+		}
+	}
+
 	data := map[string]interface{}{
-		"Title":            "Available Providers",
-		"Providers":        providers,
-		"SpotifyEnabled":   h.spotifyEnabled,
-		"SpotifyConnected": spotifyConnected,
-		"SpotifyUserName":  spotifyUserName,
+		"Title":                  "Available Providers",
+		"Providers":              providers,
+		"SpotifyEnabled":         h.spotifyEnabled,
+		"SpotifyConnected":       spotifyConnected,
+		"SpotifyUserName":        spotifyUserName,
+		"YouTubeMusicEnabled":    h.youtubeMusicEnabled,
+		"YouTubeMusicConnected":  youtubeMusicConnected,
+		"YouTubeMusicUserName":   youtubeMusicUserName,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "providers.html", data); err != nil {

@@ -140,7 +140,15 @@ PlayPort/
 │   ├── providers/
 │   │   ├── provider.go          # Provider interface
 │   │   ├── mock.go              # Mock provider implementation
-│   │   └── mock_test.go         # Provider tests
+│   │   ├── mock_test.go         # Provider tests
+│   │   ├── spotify/             # Spotify provider
+│   │   │   ├── provider.go
+│   │   │   ├── types.go
+│   │   │   └── provider_test.go
+│   │   └── youtubemusic/        # YouTube Music provider
+│   │       ├── provider.go
+│   │       ├── types.go
+│   │       └── provider_test.go
 │   ├── server/
 │   │   └── server.go            # HTTP server setup
 │   └── services/
@@ -268,13 +276,64 @@ export $(cat .env | xargs) && ./playport
 - If you don't configure Spotify credentials, the application will run normally with only the mock provider available.
 - **Current Limitation**: This MVP implementation uses a single shared session. In production, implement proper user authentication and session management to support multiple users. See the TODO comments in the code for guidance.
 
+## 🎵 YouTube Music Setup
+
+PlayPort supports YouTube Music integration via the YouTube Data API v3! To enable YouTube Music, configure the following environment variables:
+
+### Required Environment Variables
+
+1. **YOUTUBE_MUSIC_CLIENT_ID**: Your Google OAuth application client ID
+2. **YOUTUBE_MUSIC_CLIENT_SECRET**: Your Google OAuth application client secret
+3. **YOUTUBE_MUSIC_REDIRECT_URL**: The OAuth callback URL (e.g., `http://localhost:8080/auth/youtubemusic/callback`)
+
+### Getting YouTube Music (Google OAuth) Credentials
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the **YouTube Data API v3**:
+   - Navigate to **APIs & Services > Library**
+   - Search for "YouTube Data API v3" and enable it
+4. Create OAuth 2.0 credentials:
+   - Navigate to **APIs & Services > Credentials**
+   - Click **Create Credentials > OAuth client ID**
+   - Select **Web application** as the application type
+   - Add the redirect URI:
+     - For local development: `http://localhost:8080/auth/youtubemusic/callback`
+     - For production: `https://yourdomain.com/auth/youtubemusic/callback`
+5. Copy your **Client ID** and **Client Secret**
+
+### Running with YouTube Music Enabled
+
+```bash
+# Set environment variables
+export YOUTUBE_MUSIC_CLIENT_ID="your-client-id-here"
+export YOUTUBE_MUSIC_CLIENT_SECRET="your-client-secret-here"
+export YOUTUBE_MUSIC_REDIRECT_URL="http://localhost:8080/auth/youtubemusic/callback"
+
+# Run the application
+./playport
+```
+
+### Using YouTube Music Features
+
+1. Navigate to the **Providers** page
+2. Click **Connect YouTube Music**
+3. Authorize the application in the Google OAuth flow
+4. Once connected, you can:
+   - View your YouTube Music playlists
+   - Export playlists (coming soon: import to other providers)
+
+**Important Notes**:
+- If you don't configure YouTube Music credentials, the application will run normally with only the other configured providers available.
+- **Current Limitation**: This MVP implementation uses a single shared session. In production, implement proper user authentication and session management to support multiple users.
+
 ## 📝 Future Enhancements
 
 Potential features for future development:
 
 - ✅ Spotify integration (read playlists, OAuth) - **COMPLETED**
+- ✅ YouTube Music integration (read playlists, OAuth) - **COMPLETED**
 - Apple Music integration
-- YouTube Music integration
 - User authentication and session management
 - Playlist import to Spotify
 - Playlist transfer history

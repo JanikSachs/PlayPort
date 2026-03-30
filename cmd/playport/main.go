@@ -7,6 +7,7 @@ import (
 	"github.com/JanikSachs/PlayPort/internal/config"
 	"github.com/JanikSachs/PlayPort/internal/providers"
 	"github.com/JanikSachs/PlayPort/internal/providers/spotify"
+	"github.com/JanikSachs/PlayPort/internal/providers/youtubemusic"
 	"github.com/JanikSachs/PlayPort/internal/server"
 	"github.com/JanikSachs/PlayPort/internal/services"
 	"github.com/JanikSachs/PlayPort/internal/storage"
@@ -29,6 +30,18 @@ func main() {
 		log.Println("Spotify integration enabled")
 	} else {
 		log.Println("Spotify integration disabled (environment variables not set)")
+	}
+
+	// Validate YouTube Music configuration
+	youtubeMusicEnabled, err := cfg.ValidateYouTubeMusic()
+	if err != nil {
+		log.Fatalf("YouTube Music configuration error: %v", err)
+	}
+
+	if youtubeMusicEnabled {
+		log.Println("YouTube Music integration enabled")
+	} else {
+		log.Println("YouTube Music integration disabled (environment variables not set)")
 	}
 
 	// Create storage
@@ -54,8 +67,20 @@ func main() {
 		transferService.RegisterProvider(spotifyProvider)
 	}
 
+	// Create YouTube Music provider if enabled
+	var youtubeMusicProvider *youtubemusic.YouTubeMusicProvider
+	if youtubeMusicEnabled {
+		youtubeMusicProvider = youtubemusic.NewYouTubeMusicProvider(
+			cfg.YouTubeMusicClientID,
+			cfg.YouTubeMusicClientSecret,
+			cfg.YouTubeMusicRedirectURL,
+			connectionStore,
+		)
+		transferService.RegisterProvider(youtubeMusicProvider)
+	}
+
 	// Create and start server
-	srv, err := server.New(cfg.ServerAddr, transferService, spotifyProvider, connectionStore, stateStore, spotifyEnabled)
+	srv, err := server.New(cfg.ServerAddr, transferService, spotifyProvider, youtubeMusicProvider, connectionStore, stateStore, spotifyEnabled, youtubeMusicEnabled)
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}
