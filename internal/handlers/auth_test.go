@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/JanikSachs/PlayPort/internal/auth"
+	"github.com/JanikSachs/PlayPort/internal/middleware"
 	"github.com/JanikSachs/PlayPort/internal/storage"
 )
 
@@ -372,5 +373,100 @@ func TestHandleLogout(t *testing.T) {
 			}
 			break
 		}
+	}
+}
+
+func TestHandleLogin_CookieNotSecureOverHTTP(t *testing.T) {
+	ah, stateStore, userStore, _ := setupTestAuthHandlers(t)
+
+	hash, _ := auth.HashPassword("password123")
+	_, err := userStore.CreateWithCredentials("testuser", hash)
+	if err != nil {
+		t.Fatalf("Failed to create user: %v", err)
+	}
+
+	csrfToken, _ := stateStore.Generate()
+
+	form := url.Values{
+		"csrf_token": {csrfToken},
+		"username":   {"testuser"},
+		"password":   {"password123"},
+	}
+
+	// HTTP request (r.TLS is nil)
+	req := httptest.NewRequest(http.MethodPost, "http://localhost/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	ah.HandleLogin(w, req)
+
+	cookies := w.Result().Cookies()
+	for _, c := range cookies {
+		if c.Name == "session_token" {
+			if c.Secure {
+				t.Error("session_token cookie should not have Secure flag over HTTP")
+			}
+			return
+		}
+	}
+	t.Fatal("Should have set session_token cookie")
+}
+
+func TestHandleLogin_SessionValidThroughMiddleware(t *testing.T) {
+	ah, stateStore, userStore, sessionStore := setupTestAuthHandlers(t)
+
+	hash, _ := auth.HashPassword("password123")
+	_, err := userStore.CreateWithCredentials("testuser", hash)
+	if err != nil {
+		t.Fatalf("Failed to create user: %v", err)
+	}
+
+	csrfToken, _ := stateStore.Generate()
+
+	form := url.Values{
+		"csrf_token": {csrfToken},
+		"username":   {"testuser"},
+		"password":   {"password123"},
+	}
+
+	// Step 1: Login
+	req := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	ah.HandleLogin(w, req)
+
+	// Extract session cookie
+	var sessionCookie *http.Cookie
+	for _, c := range w.Result().Cookies() {
+		if c.Name == "session_token" {
+			sessionCookie = c
+			break
+		}
+	}
+	if sessionCookie == nil {
+		t.Fatal("Should have set session_token cookie")
+	}
+
+	// Step 2: Use the cookie to access a protected route through middleware
+	mw := middleware.SessionMiddleware(sessionStore)
+	var capturedUserID string
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedUserID = middleware.UserIDFromContext(r.Context())
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	protectedReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	protectedReq.AddCookie(sessionCookie)
+	protectedW := httptest.NewRecorder()
+
+	handler.ServeHTTP(protectedW, protectedReq)
+
+	if protectedW.Code != http.StatusOK {
+		t.Errorf("Expected status 200 on protected route with valid session, got %d", protectedW.Code)
+	}
+
+	if capturedUserID == "" {
+		t.Error("Middleware should inject userID into context after successful login")
 	}
 }

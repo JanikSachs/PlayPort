@@ -109,7 +109,7 @@ func (h *AuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
@@ -224,7 +224,7 @@ func (h *AuthHandlers) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
@@ -257,7 +257,7 @@ func (h *AuthHandlers) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})
