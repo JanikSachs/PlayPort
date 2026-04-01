@@ -8,6 +8,7 @@ import (
 
 	"github.com/JanikSachs/PlayPort/internal/auth"
 	"github.com/JanikSachs/PlayPort/internal/handlers"
+	"github.com/JanikSachs/PlayPort/internal/middleware"
 	"github.com/JanikSachs/PlayPort/internal/providers/spotify"
 	"github.com/JanikSachs/PlayPort/internal/providers/youtubemusic"
 	"github.com/JanikSachs/PlayPort/internal/services"
@@ -23,13 +24,15 @@ type Server struct {
 	spotifyProvider      *spotify.SpotifyProvider
 	youtubeMusicProvider *youtubemusic.YouTubeMusicProvider
 	connectionStore      storage.ConnectionStore
+	userStore            storage.UserStore
 	stateStore           auth.StateStore
+	sessionStore         auth.SessionStore
 	spotifyEnabled       bool
 	youtubeMusicEnabled  bool
 }
 
 // New creates a new server instance
-func New(addr string, transferService *services.TransferService, spotifyProvider *spotify.SpotifyProvider, youtubeMusicProvider *youtubemusic.YouTubeMusicProvider, connectionStore storage.ConnectionStore, stateStore auth.StateStore, spotifyEnabled bool, youtubeMusicEnabled bool) (*Server, error) {
+func New(addr string, transferService *services.TransferService, spotifyProvider *spotify.SpotifyProvider, youtubeMusicProvider *youtubemusic.YouTubeMusicProvider, connectionStore storage.ConnectionStore, userStore storage.UserStore, stateStore auth.StateStore, sessionStore auth.SessionStore, spotifyEnabled bool, youtubeMusicEnabled bool) (*Server, error) {
 	// Parse templates
 	templates, err := template.ParseGlob(filepath.Join("web", "templates", "*.html"))
 	if err != nil {
@@ -44,7 +47,9 @@ func New(addr string, transferService *services.TransferService, spotifyProvider
 		spotifyProvider:     spotifyProvider,
 		youtubeMusicProvider: youtubeMusicProvider,
 		connectionStore:     connectionStore,
+		userStore:           userStore,
 		stateStore:          stateStore,
+		sessionStore:        sessionStore,
 		spotifyEnabled:      spotifyEnabled,
 		youtubeMusicEnabled: youtubeMusicEnabled,
 	}
@@ -56,13 +61,30 @@ func New(addr string, transferService *services.TransferService, spotifyProvider
 // setupRoutes configures all HTTP routes
 func (s *Server) setupRoutes() {
 	// Create handlers
-	h := handlers.NewHandlers(s.transferService, s.templates, s.connectionStore, s.spotifyEnabled, s.youtubeMusicEnabled)
-	authHandlers := handlers.NewAuthHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.stateStore, s.spotifyEnabled, s.youtubeMusicEnabled)
+	h := handlers.NewHandlers(s.transferService, s.templates, s.connectionStore, s.userStore, s.spotifyEnabled, s.youtubeMusicEnabled)
+	authHandlers := handlers.NewAuthHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.stateStore, s.userStore, s.sessionStore, s.templates, s.spotifyEnabled, s.youtubeMusicEnabled)
 	providerHandlers := handlers.NewProviderHandlers(s.spotifyProvider, s.youtubeMusicProvider, s.connectionStore, s.templates, s.spotifyEnabled, s.youtubeMusicEnabled)
 
 	// Static files
 	fs := http.FileServer(http.Dir("web/static"))
 	s.mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// Auth routes
+	s.mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			authHandlers.HandleLogin(w, r)
+		} else {
+			authHandlers.HandleLoginPage(w, r)
+		}
+	})
+	s.mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			authHandlers.HandleRegister(w, r)
+		} else {
+			authHandlers.HandleRegisterPage(w, r)
+		}
+	})
+	s.mux.HandleFunc("/logout", authHandlers.HandleLogout)
 
 	// Pages
 	s.mux.HandleFunc("/", h.HandleHome)
@@ -89,5 +111,6 @@ func (s *Server) setupRoutes() {
 // Start starts the HTTP server
 func (s *Server) Start() error {
 	log.Printf("Server starting on %s", s.addr)
-	return http.ListenAndServe(s.addr, s.mux)
+	sessionMW := middleware.SessionMiddleware(s.sessionStore)
+	return http.ListenAndServe(s.addr, sessionMW(s.mux))
 }

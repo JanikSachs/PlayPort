@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - PlayPort</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body>
+    <section class="hero is-fullheight">
+        <div class="hero-body">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-4">
+                        <div class="has-text-centered mb-5">
+                            <h1 class="title is-2" style="color: #F97316;">PlayPort</h1>
+                            <p class="subtitle is-5">Transfer your playlists between music platforms</p>
+                        </div>
+                        <div class="box">
+                            <h2 class="title is-4 has-text-centered">Register</h2>
+
+                            <form method="POST" action="/register">
+                                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+                                <div class="field">
+                                    <label class="label">Username</label>
+                                    <div class="control">
+                                        <input class="input{{if index .Errors "username"}} is-danger{{end}}" type="text" name="username" placeholder="Username" value="{{.Username}}" required autofocus>
+                                    </div>
+                                    {{if index .Errors "username"}}
+                                    <p class="help is-danger">{{index .Errors "username"}}</p>
+                                    {{end}}
+                                </div>
+
+                                <div class="field">
+                                    <label class="label">Password</label>
+                                    <div class="control">
+                                        <input class="input{{if index .Errors "password"}} is-danger{{end}}" type="password" name="password" placeholder="Password (min 8 characters)" required>
+                                    </div>
+                                    {{if index .Errors "password"}}
+                                    <p class="help is-danger">{{index .Errors "password"}}</p>
+                                    {{end}}
+                                </div>
+
+                                <div class="field">
+                                    <label class="label">Confirm Password</label>
+                                    <div class="control">
+                                        <input class="input{{if index .Errors "confirm"}} is-danger{{end}}" type="password" name="confirm" placeholder="Confirm password" required>
+                                    </div>
+                                    {{if index .Errors "confirm"}}
+                                    <p class="help is-danger">{{index .Errors "confirm"}}</p>
+                                    {{end}}
+                                </div>
+
+                                <div class="field mt-5">
+                                    <div class="control">
+                                        <button class="button is-primary is-fullwidth" type="submit" style="background-color: #F97316; border-color: #F97316;">Register</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <hr>
+                            <p class="has-text-centered">
+                                Already have an account? <a href="/login">Log In</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

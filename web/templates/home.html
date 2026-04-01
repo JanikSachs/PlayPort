@@ -25,11 +25,16 @@
                 <div class="navbar-item">
                     <span class="tag is-light">v{{.Version}}</span>
                 </div>
+                {{if .Username}}
                 <div class="navbar-item">
-                    <button id="theme-toggle" class="button is-small" aria-label="Toggle dark mode" title="Toggle dark/light mode">
-                        <span id="theme-icon">🌙</span>
-                    </button>
+                    <strong>{{.Username}}</strong>
                 </div>
+                <div class="navbar-item">
+                    <form method="POST" action="/logout" style="margin:0">
+                        <button class="button is-light is-small" type="submit">Log out</button>
+                    </form>
+                </div>
+                {{end}}
             </div>
         </div>
     </nav>

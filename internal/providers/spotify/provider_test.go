@@ -135,7 +135,7 @@ func TestSpotifyProvider_Authenticate_NotConnected(t *testing.T) {
 	store := storage.NewInMemoryConnectionStore()
 	provider := NewSpotifyProvider("client-id", "client-secret", "http://localhost/callback", store)
 
-	err := provider.Authenticate()
+	err := provider.Authenticate("user123")
 	if err == nil {
 		t.Error("Authenticate() should fail when not connected")
 	}

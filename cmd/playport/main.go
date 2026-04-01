@@ -46,7 +46,9 @@ func main() {
 
 	// Create storage
 	connectionStore := storage.NewInMemoryConnectionStore()
+	userStore := storage.NewInMemoryUserStore()
 	stateStore := auth.NewInMemoryStateStore()
+	sessionStore := auth.NewInMemorySessionStore(0)
 
 	// Create transfer service
 	transferService := services.NewTransferService()
@@ -80,7 +82,7 @@ func main() {
 	}
 
 	// Create and start server
-	srv, err := server.New(cfg.ServerAddr, transferService, spotifyProvider, youtubeMusicProvider, connectionStore, stateStore, spotifyEnabled, youtubeMusicEnabled)
+	srv, err := server.New(cfg.ServerAddr, transferService, spotifyProvider, youtubeMusicProvider, connectionStore, userStore, stateStore, sessionStore, spotifyEnabled, youtubeMusicEnabled)
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}
