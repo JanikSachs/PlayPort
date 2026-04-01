@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}} - PlayPort</title>
-    <script>(function(){var t=localStorage.getItem('playport-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+    <script src="/static/js/theme-init.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <link rel="stylesheet" href="/static/css/custom.css">
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
     <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
@@ -45,20 +44,6 @@
             </p>
         </div>
     </footer>
-    <script>
-        (function() {
-            var icon = document.getElementById('theme-icon');
-            var btn = document.getElementById('theme-toggle');
-            var theme = localStorage.getItem('playport-theme') || 'light';
-            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
-            btn.addEventListener('click', function() {
-                var current = document.documentElement.getAttribute('data-theme');
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                icon.textContent = next === 'dark' ? '☀️' : '🌙';
-                localStorage.setItem('playport-theme', next);
-            });
-        })();
-    </script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>

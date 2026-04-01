@@ -1,0 +1,14 @@
+{
+  "name": "playport",
+  "private": true,
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "htmx.org": "^1.9.10"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

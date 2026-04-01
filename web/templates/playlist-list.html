@@ -32,10 +32,11 @@
                                     <input type="hidden" name="source_provider" value="{{.Provider}}">
                                     <input type="hidden" name="playlist_id" value="{{.ID}}">
                                     <input type="hidden" id="target-input-{{.ID}}" name="target_provider" value="">
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         class="button is-success"
-                                        onclick="document.getElementById('target-input-{{.ID}}').value = document.getElementById('target-provider-{{.ID}}').value; return document.getElementById('target-provider-{{.ID}}').value !== '';">
+                                        data-target-provider="target-provider-{{.ID}}"
+                                        data-target-input="target-input-{{.ID}}">
                                         Transfer
                                     </button>
                                 </form>
