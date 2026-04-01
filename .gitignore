@@ -41,3 +41,7 @@ temp/
 
 # Environment variables file
 .env
+
+# Node / Vite
+node_modules/
+web/static/js/

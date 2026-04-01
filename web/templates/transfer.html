@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
+    <script src="/static/js/theme-init.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <link rel="stylesheet" href="/static/css/custom.css">
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
     <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
@@ -58,13 +58,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button 
+                        <button
+                            id="load-playlists-btn"
                             class="button is-primary is-fullwidth"
                             hx-get="/api/playlists"
                             hx-include="#source-provider"
                             hx-target="#playlist-selection"
-                            hx-swap="innerHTML"
-                            onclick="this.setAttribute('hx-get', '/api/playlists?provider=' + document.getElementById('source-provider').value)">
+                            hx-swap="innerHTML">
                             Load Playlists
                         </button>
                     </div>
@@ -88,5 +88,6 @@
             </p>
         </div>
     </footer>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
